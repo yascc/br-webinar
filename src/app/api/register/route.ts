@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     await createSession({
       name: name.trim(),
       email: email.trim(),
+      phone: phone?.trim() || "",
+      wantSms: wantSms ?? false,
       slotTime,
       timezone,
     });
