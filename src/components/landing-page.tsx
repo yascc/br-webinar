@@ -71,6 +71,8 @@ export function LandingPage() {
           body: JSON.stringify({
             name: name.trim(),
             email: email.trim(),
+            phone: phone.trim() ? `${countryCode}${phone.trim()}` : "",
+            wantSms,
             slotTime: selectedSlot,
             timezone,
           }),
@@ -83,7 +85,7 @@ export function LandingPage() {
         setSubmitting(false);
       }
     },
-    [name, email, selectedSlot, timezone, submitting, router]
+    [name, email, phone, countryCode, wantSms, selectedSlot, timezone, submitting, router]
   );
 
   return (
