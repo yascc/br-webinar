@@ -10,12 +10,23 @@ export async function POST(request: NextRequest) {
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
+
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
+
+    if (phone && typeof phone !== "string") {
+      return NextResponse.json({ error: "Phone must be a string" }, { status: 400 });
+    }
+
+    if (typeof wantSms !== "undefined" && typeof wantSms !== "boolean") {
+      return NextResponse.json({ error: "wantSms must be true or false" }, { status: 400 });
+    }
+
     if (!slotTime || typeof slotTime !== "number" || slotTime < Date.now() - 60000) {
       return NextResponse.json({ error: "Invalid slot time" }, { status: 400 });
     }
+
     if (!timezone || typeof timezone !== "string") {
       return NextResponse.json({ error: "Timezone is required" }, { status: 400 });
     }
@@ -24,6 +35,16 @@ export async function POST(request: NextRequest) {
     await createSession({
       name: name.trim(),
       email: email.trim(),
+      slotTime,
+      timezone,
+    });
+
+    // You can now use these values for email, SMS, database, etc.
+    console.log("New signup:", {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone || "",
+      wantSms: wantSms ?? false,
       slotTime,
       timezone,
     });
