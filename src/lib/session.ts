@@ -7,6 +7,8 @@ const SLOT_DURATION_MS = 3 * 60 * 60 * 1000; // 3 hours
 export type SessionPayload = {
   name: string;
   email: string;
+  phone?: string;
+  wantSms?: boolean;
   slotTime: number; // unix ms
   timezone: string; // IANA timezone
 };
