@@ -4,7 +4,7 @@ import { createSession } from "@/lib/session";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, slotTime, timezone } = body;
+    const { name, email, phone, wantSms, slotTime, timezone } = body;
 
     // Validate inputs
     if (!name || typeof name !== "string" || name.trim().length === 0) {
