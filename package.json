@@ -9,11 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "googleapis": "^171.4.0",
     "jose": "^5.9.6",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "resend": "^6.9.3"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
