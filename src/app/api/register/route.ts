@@ -57,39 +57,41 @@ export async function POST(request: NextRequest) {
       timezone,
     });
 
-    // Send contact to Brevo
+    // Send contact to MailerLite
     try {
-      const brevoAttributes: Record<string, unknown> = {
-        FIRSTNAME: cleanName,
-        WANT_SMS: smsOptIn,
-        WEBINAR_TIME: new Date(slotTime).toISOString(),
-        REMINDER_TIME: reminderTime.toISOString(),
-        TIMEZONE: timezone,
-      };
-    
-      if (cleanPhone) {
-        brevoAttributes.SMS = cleanPhone;
-      }
-    
-      const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
+      const reminderISO =
+        reminderTime.getTime() > Date.now()
+          ? reminderTime.toISOString()
+          : "";
+
+      const mlRes = await fetch("https://connect.mailerlite.com/api/subscribers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "api-key": process.env.BREVO_API_KEY!,
+          "Accept": "application/json",
+          "Authorization": `Bearer ${process.env.MAILERLITE_API_KEY}`,
         },
         body: JSON.stringify({
           email: cleanEmail,
-          attributes: brevoAttributes,
-          updateEnabled: true,
+          groups: [process.env.MAILERLITE_GROUP_ID],
+          fields: {
+            name: cleanName,
+            phone: cleanPhone,
+            want_sms: smsOptIn ? "yes" : "no",
+            webinar_time: new Date(slotTime).toISOString(),
+            reminder_time: reminderISO,
+            timezone: timezone,
+          },
+          status: "active",
         }),
       });
-    
-      if (!brevoRes.ok) {
-        const errorText = await brevoRes.text();
-        console.error("Brevo contact failed:", errorText);
+
+      if (!mlRes.ok) {
+        const errorText = await mlRes.text();
+        console.error("MailerLite failed:", errorText);
       }
-    } catch (brevoError) {
-      console.error("Brevo request failed:", brevoError);
+    } catch (mlError) {
+      console.error("MailerLite request failed:", mlError);
     }
 
     const redirectTo = slotTime <= Date.now() ? "/watch" : "/waiting";
