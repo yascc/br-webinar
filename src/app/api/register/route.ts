@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/session";
 
+function normalizePhone(phone: string) {
+  let p = phone.trim().replace(/[^\d+]/g, "");
+
+  if (p.includes("+")) {
+    p = "+" + p.replace(/\+/g, "");
+  }
+
+  return p;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -32,7 +42,8 @@ export async function POST(request: NextRequest) {
 
     const cleanName = name.trim();
     const cleanEmail = email.trim();
-    const cleanPhone = typeof phone === "string" ? phone.trim() : "";
+    const cleanPhoneRaw = typeof phone === "string" ? phone.trim() : "";
+    const cleanPhone = cleanPhoneRaw ? normalizePhone(cleanPhoneRaw) : "";
     const smsOptIn = wantSms ?? false;
 
     const reminderTime = new Date(slotTime - 60 * 60 * 1000);
@@ -48,6 +59,18 @@ export async function POST(request: NextRequest) {
 
     // Send contact to Brevo
     try {
+      const brevoAttributes: Record<string, unknown> = {
+        FIRSTNAME: cleanName,
+        WANT_SMS: smsOptIn,
+        WEBINAR_TIME: new Date(slotTime).toISOString(),
+        REMINDER_TIME: reminderTime.toISOString(),
+        TIMEZONE: timezone,
+      };
+    
+      if (cleanPhone) {
+        brevoAttributes.SMS = cleanPhone;
+      }
+    
       const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
         method: "POST",
         headers: {
@@ -56,18 +79,11 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           email: cleanEmail,
-          attributes: {
-            FIRSTNAME: cleanName,
-            SMS: cleanPhone || "",
-            WANT_SMS: smsOptIn,
-            WEBINAR_TIME: new Date(slotTime).toISOString(),
-            REMINDER_TIME: reminderTime.toISOString(),
-            TIMEZONE: timezone,
-          },
+          attributes: brevoAttributes,
           updateEnabled: true,
         }),
       });
-
+    
       if (!brevoRes.ok) {
         const errorText = await brevoRes.text();
         console.error("Brevo contact failed:", errorText);
