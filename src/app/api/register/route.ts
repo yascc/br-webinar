@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     const cleanPhone = typeof phone === "string" ? phone.trim() : "";
     const smsOptIn = wantSms ?? false;
 
+    const reminderTime = new Date(slotTime - 60 * 60 * 1000);
+
     await createSession({
       name: cleanName,
       email: cleanEmail,
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
             SMS: cleanPhone || "",
             WANT_SMS: smsOptIn,
             WEBINAR_TIME: new Date(slotTime).toISOString(),
+            REMINDER_TIME: reminderTime.toISOString(),
             TIMEZONE: timezone,
           },
           updateEnabled: true,
